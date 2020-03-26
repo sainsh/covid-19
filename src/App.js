@@ -1,57 +1,152 @@
-import React, { useState, useEffect } from 'react';
-import './App.css';
-
-function App() {
-  const [data, setData] = useState([]);
-
-  useEffect(() => {
-    const fetchData = async () => {
-      const result = await fetch("https://covidapi.info/api/v1/country/dnk").then(
-        response => response.json()
-      )
-
-      var results= result.result
-
-      var days = []
-      Object.keys(results).forEach(key =>{
-        days.push(key)
-      })
-      var values = []
-      Object.values(results).forEach(value => {
-        values.push(value)
-      })
-
-      var array = []
-      for(var i =0; i<days.length; i++){
-        array.push({day : { 
-          date : days[i],
-          confirmed :values[i].confirmed,
-          deaths :values[i].deaths,
-          recovered :values[i].recovered
-        }})
-      }
-     
-     
-      setData(array);
-    };
-    fetchData();
-  }, []);
-
-
-  return (
-    <div className="App">
-      <header>
-        <h1>Numbers</h1>
-      </header>
-      <div>
-        <ul>
-          {data.map((value, i) =>(
-            <li key={i}>day : {value.day.date}, confirmed: {value.day.confirmed}, deaths: {value.day.deaths}</li>
-          ))}
-        </ul>
-      </div>
-    </div>
-  );
+import React, { useState, useEffect, Component } from "react";
+import "./App.css";
+var CanvasJSReact = require('./canvasjs.react');
+var CanvasJS = CanvasJSReact.CanvasJS;
+var CanvasJSChart = CanvasJSReact.CanvasJSChart;
+ 
+class App extends Component {	
+	constructor() {
+		super();
+		this.toggleDataSeries = this.toggleDataSeries.bind(this);
+	}
+	
+	toggleDataSeries(e){
+		if (typeof(e.dataSeries.visible) === "undefined" || e.dataSeries.visible) {
+			e.dataSeries.visible = false;
+		}
+		else{
+			e.dataSeries.visible = true;
+		}
+		this.chart.render();
+	}
+	
+	render() {
+		const options = {
+			theme: "light2",
+			animationEnabled: true,
+			title:{
+				text: "Units Sold VS Profit"
+			},
+			subtitles: [{
+				text: "Click Legend to Hide or Unhide Data Series"
+			}],
+			axisX: {
+				title: "States"
+			},
+			axisY: {
+				title: "Units Sold",
+				titleFontColor: "#6D78AD",
+				lineColor: "#6D78AD",
+				labelFontColor: "#6D78AD",
+				tickColor: "#6D78AD",
+				includeZero: false
+			},
+			axisY2: {
+				title: "Profit in USD",
+				titleFontColor: "#51CDA0",
+				lineColor: "#51CDA0",
+				labelFontColor: "#51CDA0",
+				tickColor: "#51CDA0",
+				includeZero: false
+			},
+			toolTip: {
+				shared: true
+			},
+			legend: {
+				cursor: "pointer",
+				itemclick: this.toggleDataSeries
+			},
+			data: [{
+				type: "spline",
+				name: "Units Sold",
+				showInLegend: true,
+				xValueFormatString: "MMM YYYY",
+				yValueFormatString: "#,##0 Units",
+				dataPoints: [
+					{ x: new Date(2017, 0, 1), y: 120 },
+					{ x: new Date(2017, 1, 1), y: 135 },
+					{ x: new Date(2017, 2, 1), y: 144 },
+					{ x: new Date(2017, 3, 1), y: 103 },
+					{ x: new Date(2017, 4, 1), y: 93 },
+					{ x: new Date(2017, 5, 1), y: 129 },
+					{ x: new Date(2017, 6, 1), y: 143 },
+					{ x: new Date(2017, 7, 1), y: 156 },
+					{ x: new Date(2017, 8, 1), y: 122 },
+					{ x: new Date(2017, 9, 1), y: 106 },
+					{ x: new Date(2017, 10, 1), y: 137 },
+					{ x: new Date(2017, 11, 1), y: 142 }
+				]
+			},
+			{
+				type: "spline",
+				name: "Profit",
+				axisYType: "secondary",
+				showInLegend: true,
+				xValueFormatString: "MMM YYYY",
+				yValueFormatString: "$#,##0.#",
+				dataPoints: [
+					{ x: new Date(2017, 0, 1), y: 19034.5 },
+					{ x: new Date(2017, 1, 1), y: 20015 },
+					{ x: new Date(2017, 2, 1), y: 27342 },
+					{ x: new Date(2017, 3, 1), y: 20088 },
+					{ x: new Date(2017, 4, 1), y: 20234 },
+					{ x: new Date(2017, 5, 1), y: 29034 },
+					{ x: new Date(2017, 6, 1), y: 30487 },
+					{ x: new Date(2017, 7, 1), y: 32523 },
+					{ x: new Date(2017, 8, 1), y: 20234 },
+					{ x: new Date(2017, 9, 1), y: 27234 },
+					{ x: new Date(2017, 10, 1), y: 33548 },
+					{ x: new Date(2017, 11, 1), y: 32534 }
+				]
+			}]
+		}
+		
+		
+		return (
+		<div>
+			<CanvasJSChart options = {options} 
+				 onRef={ref => this.chart = ref}
+			/>
+			{/*You can get reference to the chart instance as shown above using onRef. This allows you to access all chart properties and methods*/}
+		</div>
+		);
+	}
+			
 }
+module.exports = App;     
 
-export default App;
+
+/*
+const fetchData = async () => {
+  const result = await fetch(
+    "https://covidapi.info/api/v1/country/dnk"
+  ).then(response => response.json());
+
+  var results = result.result;
+
+  var days = [];
+  Object.keys(results).forEach(key => {
+    days.push(key);
+  });
+  var values = [];
+  Object.values(results).forEach(value => {
+    values.push(value);
+  });
+
+  var array = [];
+  for (var i = 0; i < days.length; i++) {
+    array.push({
+      day: {
+        date: days[i],
+        confirmed: values[i].confirmed,
+        deaths: values[i].deaths,
+        recovered: values[i].recovered
+      }
+    });
+  }
+
+  setData(array);
+};
+fetchData();
+}, []);
+*/
