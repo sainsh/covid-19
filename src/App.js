@@ -84,23 +84,28 @@ class App extends Component {
 		confirmedSeries.dataFields.dateX = "date";
 		confirmedSeries.dataFields.valueY = "confirmed";
 		confirmedSeries.data = confirmedData;
+		confirmedSeries.stroke = am4core.color("#F5DBCB")
+		
 	
 		let deathsSeries = chart.series.push(new am4charts.LineSeries());
 		deathsSeries.name = "Confirmed Cases";
 		deathsSeries.dataFields.dateX = "date";
 		deathsSeries.dataFields.valueY = "deaths";
 		deathsSeries.data = deathsData;
+		deathsSeries.stroke = am4core.color("#000000")
 	
 		let recoveredSeries = chart.series.push(new am4charts.LineSeries());
 		recoveredSeries.name = "Confirmed Cases";
 		recoveredSeries.dataFields.dateX = "date";
 		recoveredSeries.dataFields.valueY = "recovered";
 		recoveredSeries.data = recoveredData;
+		recoveredSeries.stroke = am4core.color("#000FFF")
 	
 		confirmedSeries.tooltipText = "Confirmed: {valueY.value}";
 		deathsSeries.tooltipText = "Deaths: {valueY.value}";
 		recoveredSeries.tooltipText = "recovered: {valueY.value}";
 		chart.cursor = new am4charts.XYCursor();
+		
 	
 		this.chart = chart;
 	})
@@ -129,37 +134,3 @@ class App extends Component {
 
 export default App;
 
-/*
-const fetchData = async () => {
-  const result = await fetch(
-    "https://covidapi.info/api/v1/country/dnk"
-  ).then(response => response.json());
-
-  var results = result.result;
-
-  var days = [];
-  Object.keys(results).forEach(key => {
-    days.push(key);
-  });
-  var values = [];
-  Object.values(results).forEach(value => {
-    values.push(value);
-  });
-
-  var array = [];
-  for (var i = 0; i < days.length; i++) {
-    array.push({
-      day: {
-        date: days[i],
-        confirmed: values[i].confirmed,
-        deaths: values[i].deaths,
-        recovered: values[i].recovered
-      }
-    });
-  }
-
-  setData(array);
-};
-fetchData();
-}, []);
-*/
