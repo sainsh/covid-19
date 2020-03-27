@@ -1,120 +1,133 @@
-import React, { useState, useEffect, Component } from "react";
+import React, { Component } from "react";
 import "./App.css";
-var CanvasJSReact = require('./canvasjs.react');
-var CanvasJS = CanvasJSReact.CanvasJS;
-var CanvasJSChart = CanvasJSReact.CanvasJSChart;
- 
-class App extends Component {	
-	constructor() {
-		super();
-		this.toggleDataSeries = this.toggleDataSeries.bind(this);
-	}
-	
-	toggleDataSeries(e){
-		if (typeof(e.dataSeries.visible) === "undefined" || e.dataSeries.visible) {
-			e.dataSeries.visible = false;
-		}
-		else{
-			e.dataSeries.visible = true;
-		}
-		this.chart.render();
-	}
-	
-	render() {
-		const options = {
-			theme: "light2",
-			animationEnabled: true,
-			title:{
-				text: "Units Sold VS Profit"
-			},
-			subtitles: [{
-				text: "Click Legend to Hide or Unhide Data Series"
-			}],
-			axisX: {
-				title: "States"
-			},
-			axisY: {
-				title: "Units Sold",
-				titleFontColor: "#6D78AD",
-				lineColor: "#6D78AD",
-				labelFontColor: "#6D78AD",
-				tickColor: "#6D78AD",
-				includeZero: false
-			},
-			axisY2: {
-				title: "Profit in USD",
-				titleFontColor: "#51CDA0",
-				lineColor: "#51CDA0",
-				labelFontColor: "#51CDA0",
-				tickColor: "#51CDA0",
-				includeZero: false
-			},
-			toolTip: {
-				shared: true
-			},
-			legend: {
-				cursor: "pointer",
-				itemclick: this.toggleDataSeries
-			},
-			data: [{
-				type: "spline",
-				name: "Units Sold",
-				showInLegend: true,
-				xValueFormatString: "MMM YYYY",
-				yValueFormatString: "#,##0 Units",
-				dataPoints: [
-					{ x: new Date(2017, 0, 1), y: 120 },
-					{ x: new Date(2017, 1, 1), y: 135 },
-					{ x: new Date(2017, 2, 1), y: 144 },
-					{ x: new Date(2017, 3, 1), y: 103 },
-					{ x: new Date(2017, 4, 1), y: 93 },
-					{ x: new Date(2017, 5, 1), y: 129 },
-					{ x: new Date(2017, 6, 1), y: 143 },
-					{ x: new Date(2017, 7, 1), y: 156 },
-					{ x: new Date(2017, 8, 1), y: 122 },
-					{ x: new Date(2017, 9, 1), y: 106 },
-					{ x: new Date(2017, 10, 1), y: 137 },
-					{ x: new Date(2017, 11, 1), y: 142 }
-				]
-			},
-			{
-				type: "spline",
-				name: "Profit",
-				axisYType: "secondary",
-				showInLegend: true,
-				xValueFormatString: "MMM YYYY",
-				yValueFormatString: "$#,##0.#",
-				dataPoints: [
-					{ x: new Date(2017, 0, 1), y: 19034.5 },
-					{ x: new Date(2017, 1, 1), y: 20015 },
-					{ x: new Date(2017, 2, 1), y: 27342 },
-					{ x: new Date(2017, 3, 1), y: 20088 },
-					{ x: new Date(2017, 4, 1), y: 20234 },
-					{ x: new Date(2017, 5, 1), y: 29034 },
-					{ x: new Date(2017, 6, 1), y: 30487 },
-					{ x: new Date(2017, 7, 1), y: 32523 },
-					{ x: new Date(2017, 8, 1), y: 20234 },
-					{ x: new Date(2017, 9, 1), y: 27234 },
-					{ x: new Date(2017, 10, 1), y: 33548 },
-					{ x: new Date(2017, 11, 1), y: 32534 }
-				]
-			}]
-		}
-		
-		
-		return (
-		<div>
-			<CanvasJSChart options = {options} 
-				 onRef={ref => this.chart = ref}
-			/>
-			{/*You can get reference to the chart instance as shown above using onRef. This allows you to access all chart properties and methods*/}
-		</div>
-		);
-	}
-			
-}
-module.exports = App;     
+import * as am4core from "@amcharts/amcharts4/core";
+import * as am4charts from "@amcharts/amcharts4/charts";
+import am4themes_animated from "@amcharts/amcharts4/themes/animated";
+am4core.useTheme(am4themes_animated);
 
+// Generate random data
+
+
+// Component which contains the dynamic state for the chart
+class App extends Component {
+
+  async fetchData() {
+    var dataProvider = [];
+
+    const result = await fetch(
+      "https://covidapi.info/api/v1/country/dnk"
+    ).then(response => response.json());
+
+    var results = result.result;
+
+    var days = [];
+    Object.keys(results).forEach(key => {
+      days.push(key);
+    });
+    var values = [];
+    Object.values(results).forEach(value => {
+      values.push(value);
+    });
+
+    for (var i = 0; i < days.length; i++) {
+      dataProvider.push({
+        date: days[i],
+        confirmed: values[i].confirmed,
+        deaths: values[i].deaths,
+        recovered: values[i].recovered
+      });
+    }
+
+    return dataProvider;
+  }
+
+  componentDidMount() {
+    let chart = am4core.create("chartdiv", am4charts.XYChart);
+    chart.paddingRight = 20;
+
+	this.fetchData().then(data =>{
+		console.log(data)
+		let confirmedData = [];
+		let deathsData = [];
+		let recoveredData = [];
+	
+		for (var i = 0; i <data.length; i++) {
+		  var day, month, year, date;
+		  var splitDate = data[i].date.split("-");
+		  day = splitDate[2];
+		  month = splitDate[1];
+		  year = splitDate[0];
+		  date = new Date(year, month, day);
+		  confirmedData.push({
+			date: date,
+			confirmed: data[i].confirmed
+		  });
+		  deathsData.push({ date: date, deaths: data[i].deaths });
+		  recoveredData.push({
+			date: date,
+			recovered: data[i].recovered
+		  });
+		  
+		}
+	
+		chart.dateFormatter.inputDateFormat = "yyyy-mm-dd";
+	
+		let dateAxis = chart.xAxes.push(new am4charts.DateAxis());
+		dateAxis.renderer.grid.template.location = 0;
+	
+		let valueAxis = chart.yAxes.push(new am4charts.ValueAxis());
+		valueAxis.tooltip.disabled = true;
+		valueAxis.renderer.minWidth = 35;
+	
+		let confirmedSeries = chart.series.push(new am4charts.LineSeries());
+		confirmedSeries.name = "Confirmed Cases";
+		confirmedSeries.dataFields.dateX = "date";
+		confirmedSeries.dataFields.valueY = "confirmed";
+		confirmedSeries.data = confirmedData;
+	
+		let deathsSeries = chart.series.push(new am4charts.LineSeries());
+		deathsSeries.name = "Confirmed Cases";
+		deathsSeries.dataFields.dateX = "date";
+		deathsSeries.dataFields.valueY = "deaths";
+		deathsSeries.data = deathsData;
+	
+		let recoveredSeries = chart.series.push(new am4charts.LineSeries());
+		recoveredSeries.name = "Confirmed Cases";
+		recoveredSeries.dataFields.dateX = "date";
+		recoveredSeries.dataFields.valueY = "recovered";
+		recoveredSeries.data = recoveredData;
+	
+		confirmedSeries.tooltipText = "Confirmed: {valueY.value}";
+		deathsSeries.tooltipText = "Deaths: {valueY.value}";
+		recoveredSeries.tooltipText = "recovered: {valueY.value}";
+		chart.cursor = new am4charts.XYCursor();
+	
+		this.chart = chart;
+	})
+
+    
+	
+	
+  }
+
+  componentWillUnmount() {
+    if (this.chart) {
+      this.chart.dispose();
+    }
+  }
+
+  render() {
+    return (
+      <div className="App">
+        <h1>Covid-19 Numbers</h1>
+        <div id="chartdiv" style={{ width: "100%", height: "500px" }}></div>
+        <div>test </div>
+      </div>
+    );
+  }
+}
+
+export default App;
 
 /*
 const fetchData = async () => {
